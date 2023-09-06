@@ -10,6 +10,8 @@
 
 https://netology.ru/profile/settings/documents
 
+1. ![01-01](https://github.com/Mikhail-2023/06_The_final_module_of_the_profession_is_a_System_administrator/blob/main/01_screen/01-01.PNG)
+
 2. Нужна ли вам справка об обучении после сдачи дипломной работы? Справка выдаётся всем студентам, в том числе тем, у кого нет диплома о высшем или среднем специальном образовании.
 а) Да
 
