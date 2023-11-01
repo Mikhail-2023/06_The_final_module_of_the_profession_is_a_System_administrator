@@ -395,16 +395,595 @@ website2 ansible_host=158.160.85.47 ansible_user=mikhail ansible_ssh_private_key
 
 ##### Создаю playbook для обновления ВМ *(громко сказано СОЗДАЮ, проще сказать взял шаблон из инета)*
 
-nano 00_update_playbook.yml
-
-
-
-
-
-
-`
-***
+`nano 00_update_playbook.yml`
 
 ```
+---
+- hosts: all
+  become: true
+  tasks:
+
+    - name: Update and upgrade apt packages
+      apt:
+        update_cache: yes
+        upgrade: yes
+```
+
+`ansible-playbook 00_update_playbook.yml`
+
+##### Создаю playbook для установки nginx на ВМ 
+
+`nano 01_nginx_playbook.yml`
 
 ```
+# МОЙ ПЕРВЫЙ РАБОТАЮЩИЙ PLAYBOOK
+---
+- hosts: website
+  become: true
+  tasks:
+
+    - name: update
+      apt: update_cache=yes
+
+    - name: Install Nginx
+      apt: name=nginx state=latest
+
+      notify:
+        - restart nginx
+
+    - name: ensure nginx is at the latest version
+      apt: name=nginx state=latest
+    - name: start nginx
+      service:
+          name: nginx
+          state: started
+
+  handlers:
+    - name: restart nginx
+      service: name=nginx state=reloaded
+```
+
+`ansible-playbook 01_nginx_playbook.yml`
+
+##### Круто, тестирование проходит сразу после установки nginx на ВМ (скрины использованы из многочисленных попыток)
+
+`sudo nano /usr/share/nginx/html/index.html`
+
+```
+<!DOCTYPE html>
+<html>
+<head>
+
+
+<span class="heading-primary-main">My thesis page!</span>
+<title>Graduate work</title>
+<style>
+html { color-scheme: light green; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>"Graduate work"</h1>
+
+<h1>"Topic by profession"</h1>
+
+<h1>"System Administrator"</h1>
+
+<h1>"Mikhail Kolobov"</h1>
+
+<p>What have I done, my brain explodes, in a few weeks I had to rethink most of the course several times!!!</p>
+
+<p><em>Thank you for your hard work, it was fascinating!!!</em></p>
+</body>
+</html>
+```
+
+`curl -v 158.160.62.234:80`
+
+`curl -v 158.160.29.143:80`
+
+## МОНИТОРИНГ
+
+##### Устанавливаю ВМ
+
+`cd terraform`
+
+`nano monitoring.tf`
+
+```
+resource "yandex_compute_instance" "zabbix-1" {
+  name                      = "zabbix1"
+  allow_stopping_for_update = true
+  platform_id               = "standard-v3"
+  zone                      = "ru-central1-a"
+
+
+  resources {
+    cores  = 2
+    memory = 1
+    core_fraction = 20
+  }
+
+  boot_disk {
+    initialize_params {
+      image_id = "fd87gocdmk3tosg6onpg"
+      size = 10
+      description = "boot disk for zabbix-1"
+    }
+  }
+
+  network_interface {
+    subnet_id = "${yandex_vpc_subnet.subnet-a.id}"
+    nat       = true
+  }
+
+  metadata = {
+    user-data = "${file("~/terraform/meta.txt")}"
+  }
+  scheduling_policy {
+    preemptible = true
+  }
+
+}
+```
+
+`terraform validate`
+
+`terraform plan`
+
+`terraform apply`
+
+`cd`
+
+##### На все машины которые будут подключены к Zabbix устанавливаю PostgreSQL:
+
+##### Добавляю в файл `hosts` новую группу `monitoring_agent`
+`nano hosts.txt`
+
+```
+...
+[monitoring_agent]
+website1 ansible_host=158.160.123.189 ansible_user=mikhail ansible_ssh_private_key_file=/root/ansible/.ssh/mykey
+website2 ansible_host=158.160.85.47 ansible_user=mikhail ansible_ssh_private_key_file=/root/ansible/.ssh/mykey
+zabbix1 ansible_host=158.160.107.130 ansible_user=mikhail ansible_ssh_private_key_file=/root/ansible/.ssh/mykey
+```
+
+nano 02_postgresql_playbook.yml
+
+```
+---
+
+- hosts: monitoring_agent
+  become: true
+  tasks:
+
+    - name: update
+      apt: update_cache=yes
+
+    - name: Install PostgreSQL
+      apt: name=postgresql state=latest
+```
+
+`ansible-playbook 02_postgresql_playbook.yml`
+
+##### На ВМ находящиеся в Yandex Cloud устанавливаю Zabbix
+
+`cd ansible`
+
+###### С помощью `ansible-galaxy` инициализирую роль `zabbix_agent`
+
+`ansible-galaxy init zabbix_agent`
+
+`nano zabbix_agent/tasks/main.yml`
+
+```
+---
+# tasks file for zabbix_agent
+
+- name: Install Zabbix 6.4 Debian repo .deb
+  ansible.builtin.apt:
+    deb: https://repo.zabbix.com/zabbix/6.4/debian/pool/main/z/zabbix-release/zabbix-release_6.4-1+debian11_all.deb
+
+- name: Install Zabbix Agent 6.4
+  ansible.builtin.apt:
+    name: zabbix-agent2
+    state: present
+    update_cache: yes
+```
+
+`nano 03_zabbix_agent_playbook.yml`
+
+```
+---
+
+- name: Install Zabbix Agent 6.4
+  hosts: monitoring_agent
+  become: true
+  roles:
+    - zabbix_agent
+
+...
+```
+
+`ansible-playbook 03_zabbix_agent_playbook.yml`
+
+Подключаюсь к Zabbix через браузер и авторизуюсь
+`http://130.193.38.140/zabbix/`
+
+## ЛОГИ
+
+##### Устанавливаю ВМ
+
+`cd terraform`
+
+`nano elasticsearch.tf`
+
+```
+resource "yandex_compute_instance" "elasticsearch-1" {
+  name                      = "elasticsearch1"
+  allow_stopping_for_update = true
+  platform_id               = "standard-v3"
+  zone                      = "ru-central1-b"
+
+  resources {
+    cores  = 2
+    memory = 1
+    core_fraction = 20
+  }
+
+  boot_disk {
+    initialize_params {
+      image_id = "fd87gocdmk3tosg6onpg"
+      size = 10
+      description = "boot disk for elasticsearch-1"
+    }
+  }
+
+  network_interface {
+    subnet_id = "${yandex_vpc_subnet.subnet-b.id}"
+    nat       = true
+  }
+
+  metadata = {
+    user-data = "${file("~/terraform/meta.txt")}"
+  }
+  scheduling_policy {
+    preemptible = true
+  }
+}
+```
+`terraform validate`
+
+`terraform plan`
+
+`nano kibana.tf`
+
+```
+resource "yandex_compute_instance" "kibana-1" {
+  name                      = "kibana1"
+  allow_stopping_for_update = true
+  platform_id               = "standard-v3"
+  zone                      = "ru-central1-b"
+
+  resources {
+    cores  = 2
+    memory = 1
+    core_fraction = 20
+  }
+
+  boot_disk {
+    initialize_params {
+      image_id = "fd87gocdmk3tosg6onpg"
+      size = 10
+      description = "boot disk for kibana-1"
+    }
+  }
+
+  network_interface {
+    subnet_id = "${yandex_vpc_subnet.subnet-b.id}"
+    nat       = true
+  }
+
+  metadata = {
+    user-data = "${file("~/terraform/meta.txt")}"
+  }
+  scheduling_policy {
+    preemptible = true
+  }
+}
+```
+
+`terraform validate`
+
+`terraform plan`
+
+`terraform apply`
+
+`cd`
+
+`cd ansible`
+
+##### Добавляю в файл hosts новую группу LOGS
+`nano hosts.txt`
+
+```
+...
+
+[logs]
+elasticsearch1 ansible_host=158.160.64.228 ansible_user=mikhail ansible_ssh_private_key_file=/root/ansible/.ssh/mykey
+kibana1 ansible_host=51.250.16.110 ansible_user=mikhail ansible_ssh_private_key_file=/root/ansible/.ssh/mykey
+```
+
+`ansible -i hosts.txt all -m ping`
+
+##### Проверяю обновления на ВМ
+
+`ansible-playbook 00_update_playbook.yml`
+
+С помощью `ansible-galaxy` инициализирую роль `elasticsearch`
+
+`ansible-galaxy init elasticsearch`
+
+`nano elasticsearch/tasks/main.yml`
+
+```
+---
+# tasks file for elasticsearch
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Ensure dependencies are installed.
+  apt:
+    name:
+      - apt-transport-https
+      - gnupg2
+    state: present
+
+- name: Get elasticsearch 8.6.2
+  ansible.builtin.get_url:
+    url: https://mirror.yandex.ru/mirrors/elastic/8/pool/main/e/elasticsearch/elasticsearch-8.6.2-amd64.deb
+    dest: /home/
+
+- name: Install elasticsearch
+  apt:
+    deb: /home/elasticsearch-8.6.2-amd64.deb
+
+- name: Copy config file for elasticsearch
+  copy:
+    src: ../templates/elasticsearch.yml
+    dest: /etc/elasticsearch
+    mode: 0660
+    owner: root
+    group: elasticsearch
+
+- name: Systemctl daemon reload
+  systemd:
+    daemon_reload: yes
+    name: elasticsearch.service
+    state: started
+
+- name: Systemctl enable elasticsearch
+  systemd:
+    name: elasticsearch.service
+    state: restarted
+```
+
+`nano 04_elasticsearch_playbook.yml`
+
+```
+---
+- hosts: logs
+  gather_facts: true
+  become: true
+  become_method: sudo
+  become_user: root
+  roles:
+    - elasticsearch
+    - node_exporter
+```
+
+`ansible-playbook 04_elasticsearch_playbook.yml`
+
+
+##### С помощью `ansible-galaxy` инициализирую роль `kibana`
+
+`ansible-galaxy init kibana`
+
+`nano kibana/tasks/main.yml`
+
+```
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    
+- name: Ensure dependencies are installed.
+  apt:
+    name:
+      - apt-transport-https
+      - gnupg2
+    state: present
+
+- name: Get kibana.8.6.2
+  ansible.builtin.get_url:  
+    url: https://mirror.yandex.ru/mirrors/elastic/8/pool/main/k/kibana/kibana-8.6.2-amd64.deb
+    dest: /home/user/
+
+- name: Install kibana
+  apt:
+    deb: /home/user/kibana-8.6.2-amd64.deb 
+
+- name: Systemctl daemon reload
+  systemd:
+    daemon_reload: true
+    name: kibana.service
+    state: started
+
+- name: Copy config file for kibana
+  template:
+    src: ./files/kibana.yml.j2
+    dest: /etc/kibana/kibana.yml
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Systemctl enable  kibana
+  systemd:
+    name: kibana.service
+    state: restarted
+```
+
+`nano 05_kibana_playbook.yml`
+
+```
+- name: Play kibana
+  hosts: logs
+  become: yes
+  roles:
+  - kibana
+  - node_exporter
+```
+
+`ansible-playbook 05_kibana_playbook.yml`
+
+`ansible-galaxy init filebeat`
+
+`nano filebeat/tasks/main.yml`
+
+```
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Get filebeat
+  ansible.builtin.get_url:
+    url: https://mirror.yandex.ru/mirrors/elastic/8/pool/main/f/filebeat/filebeat-8.6.2-amd64.deb
+    dest: /home/mikhail/
+
+- name: Install filebeat
+  apt:
+    deb: /home/user/filebeat-8.6.2-amd64.deb 
+
+- name: Copy config file for filebeat
+  template:
+    src: ../templates/filebeat.yml.j2
+    dest: /etc/filebeat/filebeat.yml
+    mode: 0600
+    owner: root
+    group: root
+
+
+- name: Systemctl daemon reload
+  systemd:
+    daemon_reload: true
+    name: filebeat.service
+    state: started
+
+- name: restarted nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: restarted filebeat
+  systemd:
+    name: filebeat.service
+    state: restarted
+
+- name: Enable filebeat.service, and not touch the state
+  ansible.builtin.service:
+    name: filebeat.service
+    enabled: yes
+```
+
+## СЕТЬ
+
+`nano bastion1.tf`
+
+```
+resource "yandex_compute_instance" "bastion-b" {
+  name                      = "bastion1"
+  allow_stopping_for_update = true
+  platform_id               = "standard-v3"
+  zone                      = "ru-central1-a"
+
+  resources {
+    cores  = 2
+    memory = 1
+    core_fraction = 20
+  }
+
+  boot_disk {
+    initialize_params {
+      image_id = "fd87gocdmk3tosg6onpg"
+      size = 10
+      description = "boot disk for private_bastion1"
+    }
+  }
+
+  network_interface {
+    subnet_id = "${yandex_vpc_subnet.subnet-b.id}"
+    nat       = true
+  }
+
+  metadata = {
+    user-data = "${file("~/terraform/meta.txt")}"
+  }
+
+  scheduling_policy {
+    preemptible = true
+  }
+}
+
+resource "yandex_vpc_network" "network-c" {
+  name = "network2"
+}
+
+resource "yandex_vpc_subnet" "subnet-c" {
+  name           = "subnet3"
+  zone           = "ru-central1-a"
+  v4_cidr_blocks = ["192.168.30.0/24"]
+  network_id     = "${yandex_vpc_network.network-c.id}"
+}
+```
+
+`terraform validate`
+
+`terraform plan`
+
+`terraform apply`
+
+## РЕЗЕРВНОЕ КОПИРОВАНИЕ
+
+`nano snapshot.tf`
+
+```
+resource "yandex_compute_snapshot_schedule" "snapshot" {
+  name = "snapshot"
+
+  schedule_policy {
+    expression = "0 0 ? * *"
+  }
+
+  snapshot_count = 7
+
+  snapshot_spec {
+    description = "daily"
+  }
+
+  disk_ids = [yandex_compute_instance.website-a.boot_disk.0.disk_id, yandex_compute_instance.website-b.boot_disk.0.disk_id, 
+yandex_compute_instance.bastion-b.boot_disk.0.disk_id, 
+yandex_compute_instance.zabbix-1.boot_disk.0.disk_id, 
+yandex_compute_instance.elasticsearch-1.boot_disk.0.disk_id, 
+yandex_compute_instance.kibana-1.boot_disk.0.disk_id]
+}
+```
+
+`terraform validate`
+
+`terraform plan`
+
+`terraform apply`
+
