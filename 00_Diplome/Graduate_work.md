@@ -618,6 +618,11 @@ nano 02_postgresql_playbook.yml
 Подключаюсь к Zabbix через браузер и авторизуюсь
 `http://130.193.38.140/zabbix/`
 
+1. ![01](https://github.com/Mikhail-2023/06_The_final_module_of_the_profession_is_a_System_administrator/blob/main/00_Diplome/Scans_of_diplomas/02_Мониторинг/01.PNG)
+2. ![02](https://github.com/Mikhail-2023/06_The_final_module_of_the_profession_is_a_System_administrator/blob/main/00_Diplome/Scans_of_diplomas/02_Мониторинг/02.PNG)
+3. ![03](https://github.com/Mikhail-2023/06_The_final_module_of_the_profession_is_a_System_administrator/blob/main/00_Diplome/Scans_of_diplomas/02_Мониторинг/03.PNG)
+4. ![Снимок](https://github.com/Mikhail-2023/06_The_final_module_of_the_profession_is_a_System_administrator/blob/main/00_Diplome/Scans_of_diplomas/02_Мониторинг/Снимок.PNG)
+
 ## ЛОГИ
 
 ##### Устанавливаю ВМ
@@ -962,6 +967,9 @@ resource "yandex_vpc_subnet" "subnet-c" {
 
 `terraform apply`
 
+1. ![Network](https://github.com/Mikhail-2023/06_The_final_module_of_the_profession_is_a_System_administrator/blob/main/00_Diplome/Scans_of_diplomas/04_Network/Network.PNG)
+
+
 ## РЕЗЕРВНОЕ КОПИРОВАНИЕ
 
 `nano snapshot.tf`
@@ -994,3 +1002,4 @@ yandex_compute_instance.kibana-1.boot_disk.0.disk_id]
 
 `terraform apply`
 
+1. ![snapshot](https://github.com/Mikhail-2023/06_The_final_module_of_the_profession_is_a_System_administrator/blob/main/00_Diplome/Scans_of_diplomas/05_Backup/snapshot.PNG)
