@@ -67,13 +67,58 @@ provider_installation {
     exclude = ["registry.terraform.io/*/*"]
   }
 }
-
 ```
 
+`mkdir terraform`
 
+`cd terraform`
 
+`nano main.tf`
 
+```
+terraform {
+  required_providers {
+    yandex = {
+      source = "yandex-cloud/yandex"
+    }
+  }
+  required_version = ">= 0.13"
+}
 
+provider "yandex" {
+  token = "y0_AgAAAAATsxVZAATuwQAAAADinqT3jXuJN8aPSkGeJzd-4gZxKkGjwZ4"
+  cloud_id = "b1g09ilem72537mh3ies"
+  folder_id = "b1gv1df2r3960gt3bb4j"
+}
+```
+
+`terraform providers lock -net-mirror=https://terraform-mirror.yandexcloud.net -platform=linux_amd64 -platform=darwin_arm64 yandex-cloud/yandex`
+
+`terraform init`
+
+`cd`
+
+#### Устанавливаю nginx (https://nginx.org/ru/linux_packages.html#Debian)
+***https://nginx.org/ru/linux_packages.html#instructions***
+
+`sudo apt install curl gnupg2 ca-certificates lsb-release debian-archive-keyring`
+
+`curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor \
+    | sudo tee /usr/share/keyrings/nginx-archive-keyring.gpg >/dev/null`
+
+Проверяю, верный ли ключ был загружен:
+`gpg --dry-run --quiet --no-keyring --import --import-options import-show /usr/share/keyrings/nginx-archive-keyring.gpg`
+
+```
+Вывод команды должен содержать полный отпечаток ключа 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62:
+pub   rsa2048 2011-08-19 [SC] [expires: 2024-06-14]
+      573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
+uid                      nginx signing key <signing-key@nginx.com>
+```
+
+`echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] \
+http://nginx.org/packages/debian `lsb_release -cs` nginx" \
+    | sudo tee /etc/apt/sources.list.d/nginx.list`
 
 
 
