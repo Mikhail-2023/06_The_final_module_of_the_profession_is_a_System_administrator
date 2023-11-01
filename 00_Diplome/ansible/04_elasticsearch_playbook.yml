@@ -1,0 +1,8 @@
+---
+
+- name: Play elasticsearch
+  hosts: logs
+  become: yes
+  roles:
+#  - elasticsearch
+  - node_exporter

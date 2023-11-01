@@ -1,0 +1,9 @@
+---
+
+- name: Install Zabbix Agent 6.4
+  hosts: monitoring_agent
+  become: true
+  roles:
+    - zabbix_agent
+
+...

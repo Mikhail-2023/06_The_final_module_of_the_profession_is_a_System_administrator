@@ -1,0 +1,13 @@
+---
+- hosts: all
+  become: true
+  become_method: sudo
+  tasks:
+
+    - name: Update and upgrade apt packages
+      apt:
+        update_cache: true
+        cache_valid_time: 3600
+        force_apt_get: true
+        upgrade: yes
+

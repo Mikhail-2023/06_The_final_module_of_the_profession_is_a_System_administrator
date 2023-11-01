@@ -1,0 +1,13 @@
+---
+# tasks file for zabbix_agent2
+
+
+- name: Install Zabbix 6.4 Debian repo .deb
+  ansible.builtin.apt:
+    deb: https://repo.zabbix.com/zabbix/6.4/debian/pool/main/z/zabbix-release/zabbix-release_6.4-1+debian11_all.deb
+
+- name: Install Zabbix Agent 6.4
+  ansible.builtin.apt:
+    name: zabbix-agent2
+    state: present
+    update_cache: yes

@@ -1,0 +1,14 @@
+[website]
+website1 ansible_host=158.160.44.149 ansible_user=mikhail ansible_ssh_private_key_file=/root/ansible/.ssh/mykey
+website2 ansible_host=158.160.84.125 ansible_user=mikhail ansible_ssh_private_key_file=/root/ansible/.ssh/mykey
+
+[monitoring_agent]
+website1 ansible_host=158.160.44.149 ansible_user=mikhail ansible_ssh_private_key_file=/root/ansible/.ssh/mykey
+website2 ansible_host=158.160.84.125 ansible_user=mikhail ansible_ssh_private_key_file=/root/ansible/.ssh/mykey
+
+[zabbix]
+zabbix1 ansible_host=158.160.107.15 ansible_user=mikhail ansible_ssh_private_key_file=/root/ansible/.ssh/mykey
+
+[logs]
+elasticsearch1 ansible_host=158.160.25.46 ansible_user=mikhail ansible_ssh_private_key_file=/root/ansible/.ssh/mykey
+kibana1 ansible_host=51.250.21.164 ansible_user=mikhail ansible_ssh_private_key_file=/root/ansible/.ssh/mykey

@@ -1,0 +1,8 @@
+---
+
+- name: Play kibana
+  hosts: logs
+  become: yes
+  roles:
+  - kibana
+  - node_exporter
