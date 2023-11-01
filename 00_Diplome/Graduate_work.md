@@ -483,10 +483,12 @@ font-family: Tahoma, Verdana, Arial, sans-serif; }
 
 `curl -v 158.160.29.143:80`
 
-![01-01]([https://github.com/Mikhail-2023/04-Monitoring_and_fault_tolerance/blob/main/10.1_screen/01-01.PNG](https://github.com/Mikhail-2023/06_The_final_module_of_the_profession_is_a_System_administrator/blob/main/00_Diplome/Scans_of_diplomas/01_screen_site/00_NGINX.PNG))
-
-
-
+1. ![00_NGINX](https://github.com/Mikhail-2023/06_The_final_module_of_the_profession_is_a_System_administrator/blob/main/00_Diplome/Scans_of_diplomas/01_screen_site/00_NGINX.PNG)
+2. ![01_NGINX](https://github.com/Mikhail-2023/06_The_final_module_of_the_profession_is_a_System_administrator/blob/main/00_Diplome/Scans_of_diplomas/01_screen_site/01_NGINX.PNG)
+3. ![01-01_NGINX](https://github.com/Mikhail-2023/06_The_final_module_of_the_profession_is_a_System_administrator/blob/main/00_Diplome/Scans_of_diplomas/01_screen_site/01-01_NGINX.PNG)
+4. ![02_NGINX](https://github.com/Mikhail-2023/06_The_final_module_of_the_profession_is_a_System_administrator/blob/main/00_Diplome/Scans_of_diplomas/01_screen_site/02_NGINX.PNG)
+5. ![03_NGINX](https://github.com/Mikhail-2023/06_The_final_module_of_the_profession_is_a_System_administrator/blob/main/00_Diplome/Scans_of_diplomas/01_screen_site/03_NGINX.PNG)
+6. ![03-02_NGINX](https://github.com/Mikhail-2023/06_The_final_module_of_the_profession_is_a_System_administrator/blob/main/00_Diplome/Scans_of_diplomas/01_screen_site/03-02_NGINX.PNG)
 
 ## МОНИТОРИНГ
 
