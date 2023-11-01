@@ -1003,3 +1003,6 @@ yandex_compute_instance.kibana-1.boot_disk.0.disk_id]
 `terraform apply`
 
 1. ![snapshot](https://github.com/Mikhail-2023/06_The_final_module_of_the_profession_is_a_System_administrator/blob/main/00_Diplome/Scans_of_diplomas/05_Backup/snapshot.PNG)
+2. ![Устал](https://github.com/Mikhail-2023/06_The_final_module_of_the_profession_is_a_System_administrator/blob/main/00_Diplome/Scans_of_diplomas/Устал.PNG)
+
+
